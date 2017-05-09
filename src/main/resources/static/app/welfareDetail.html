@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="renderer" content="webkit"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0">
+    <link href="/assets/images/favicon.ico" rel="icon" type="image/x-ico"/>
+    <title>福利详情</title>
+    <link href="//cdn.bootcss.com/weui/1.1.0/style/weui.min.css" rel="stylesheet">
+    <style>
+        .welfare {
+            background-color: #ebf7f6;
+        }
+
+        .welfare > div {
+            padding: 15px 20px;
+            background-color: #ffffff;
+        }
+
+        .welfare img {
+            width: 100%;
+            max-height: 300px;
+        }
+
+        .welfare .title {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+            padding: 20px 20px 10px;
+        }
+
+        .welfare .price {
+            float: right;
+            color: #e42a51;
+            font-family: sans-serif;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="welfare">
+    <div class="title">
+        <img fieldname="photo" src=""/>
+        <div>
+            <span fieldname="name"></span>
+            <span class="price" fieldname="price"></span>
+        </div>
+    </div>
+
+    <div fieldname="description"></div>
+</div>
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/assets/plugins/jquery.extends.js" type="text/javascript" charset="utf-8"></script>
+<script>
+    var id = Url.getParam('id');
+
+    pageInit();
+
+    function pageInit() {
+        if (!id) {
+            alert('请传入主键');
+            return;
+        }
+        var url = '/api/welfare/' + id;
+        $.get(url, {}, function (json) {
+            if (json.success == false) {
+                alert(json.msg);
+                return;
+            }
+            json.data.price = '￥' + json.data.price;
+            $('body').fitFormValues(json.data);
+        }, 'json');
+    }
+</script>
+</body>
+</html>

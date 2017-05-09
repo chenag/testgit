@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="renderer" content="webkit"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0">
+    <link href="/assets/images/favicon.ico" rel="icon" type="image/x-ico"/>
+    <title>文章详情</title>
+    <link href="//cdn.bootcss.com/weui/1.1.0/style/weui.min.css" rel="stylesheet">
+    <style>
+        .article {
+            padding: 15px 20px;
+        }
+
+        .spec {
+            margin: 5px 0 15px;
+            color: #888;
+            text-align: left;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="article">
+    <h1 fieldname="title"></h1>
+    <div class="spec" fieldname="spec"></div>
+    <div fieldname="content"></div>
+</div>
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/assets/plugins/jquery.extends.js" type="text/javascript" charset="utf-8"></script>
+<script>
+    var id = Url.getParam('id');
+
+    pageInit();
+
+    function pageInit() {
+        if (!id) {
+            alert('请传入主键');
+            return;
+        }
+        var url = '/api/article/' + id;
+        $.get(url, {}, function (json) {
+            if (json.success == false) {
+                alert(json.msg);
+                return;
+            }
+            json.data['spec'] = json.data.userName + '&nbsp;&nbsp;' + json.data.ctime;
+            $('body').fitFormValues(json.data);
+        }, 'json');
+    }
+</script>
+</body>
+</html>

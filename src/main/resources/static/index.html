@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<htmL>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=1150, user-scalable=no">
+    <title>接口测试</title>
+    <link href="//cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div id="main">
+    <div class="mask" v-show="loading">
+        <div><i class="glyphicon glyphicon-refresh"></i>加载中...</div>
+    </div>
+
+    <div id="content">
+        <div class="form-horizontal" role="form">
+            <div class="form-group">
+                <label class="col-sm-1 control-label">名称</label>
+                <div class="col-sm-11">
+                    <input type="text" class="form-control" v-model="model.name">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label">url</label>
+                <div class="col-sm-11">
+                    <input type="text" class="form-control" v-model="model.url">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label">参数</label>
+                <div class="col-sm-11">
+                    <textarea class="form-control" rows="10" placeholder="key:value" v-model="model.param"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-1 col-sm-11 form-inline">
+                    <button class="btn btn-info" @click="doRequest('GET')">GET</button>
+                    <button class="btn btn-success" @click="doRequest('POST')">POST</button>
+                    <button class="btn btn-warning" @click="doRequest('PUT')">PUT</button>
+                    <button class="btn btn-danger" @click="doRequest('DELETE')">DELETE</button>
+                    <button class="btn btn-primary" style="float: right;" @click="save()">保存</button>
+                    <input class="form-control" style="width: 400px;" placeholder="token" v-model="token"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-1 control-label">结果</label>
+                <div class="col-sm-11">
+                    <div class="result_content" v-html="result"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="list">
+        <table class="table table-striped table-hover">
+            <tr>
+                <td class="text-center" style="width: 13%;">序号</td>
+                <td style="width: 30%;">名称</td>
+                <td style="width: 44%;">url</td>
+                <td style="width: 13%;">操作</td>
+            </tr>
+            <tr v-for="(row, index) in list" @click="fitForm(index)">
+                <td class="text-center" v-text="index + 1"></td>
+                <td :title="row.name" v-text="row.name"></td>
+                <td :title="row.url" v-text="row.url"></td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-xs" @click="del(row.id)">删除</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<style>
+    body {
+        width: 100%;
+        height: 100%;
+    }
+
+    .mask {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        z-index: 99999;
+        top: 0;
+        left: 0;
+        background-color: rgba(204, 204, 204, 0.35);
+        text-align: center;
+        display: table;
+    }
+
+    .mask * {
+        vertical-align: middle;
+    }
+
+    .mask > div {
+        display: table-cell;
+        font-size: 30px;
+    }
+
+    #content {
+        width: calc(100% - 450px);
+        padding-top: 20px;
+        padding-right: 20px;
+    }
+
+    #list {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 450px;
+        height: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    .table {
+        width: 100%;
+        border: 1px solid #ccc;
+        margin: 0;
+        padding: 0;
+        table-layout: fixed;
+        cursor: pointer;
+    }
+
+    .table td {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+
+    .result_content {
+        width: 100%;
+        height: 300px;
+        padding: 6px 12px;
+        font-size: 14px;
+        line-height: 1.42857143;
+        color: #555;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        word-wrap: break-word;
+    }
+</style>
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="//cdn.bootcss.com/vue/2.1.8/vue.js"></script>
+
+<script>
+    var baseUrl = '/api/gateway';
+
+    new Vue({
+        el: '#main',
+        data: {
+            loading: false,
+            token: '',
+            model: {
+                name: '',
+                url: '',
+                param: ''
+            },
+            list: [],
+            result: {}
+        },
+        mounted: function () {
+            var vm = this;
+            vm.loadList();
+        },
+        methods: {
+            loadList: function () {
+                var vm = this;
+                vm.loading = true;
+                $.ajax({
+                    url: baseUrl + '?sortType=ctime_asc',
+                    headers: {'Content-Type': 'application/json;charset=UTF-8'},
+                    type: 'GET',
+                    success: function (response) {
+                        vm.loading = false;
+                        if (response.success) vm.list = response.data.content;
+                        else alert(response.msg);
+                    },
+                    error: function (response) {
+                        vm.loading = false;
+                        console.log('查询失败 -->', response)
+                        alert('查询失败');
+                    }
+                });
+            },
+            save: function () {
+                var vm = this;
+                vm.loading = true;
+                var data = vm.model;
+                delete data.ctime;
+                $.ajax({
+                    url: baseUrl,
+                    data: JSON.stringify(data),
+                    headers: {'Content-Type': 'application/json;charset=UTF-8'},
+                    type: 'POST',
+                    success: function (response) {
+                        vm.loading = false;
+                        if (response.success) vm.loadList();
+                        else alert(response.msg);
+                    },
+                    error: function (response) {
+                        vm.loading = false;
+                        console.log('保存失败 -->', response)
+                        alert('保存失败');
+                        vm.loadList();
+                    }
+                });
+            },
+            del: function (id) {
+                var vm = this;
+                vm.loading = true;
+                $.ajax({
+                    url: baseUrl + '/' + id,
+                    type: 'DELETE',
+                    success: function (response) {
+                        vm.loading = false;
+                        if (response.success) vm.loadList();
+                        else alert(response.msg);
+                    },
+                    error: function (response) {
+                        vm.loading = false;
+                        console.log('删除失败 -->', response)
+                        alert('删除失败');
+                        vm.loadList();
+                    }
+                });
+            },
+            fitForm: function (i) {
+                this.model = this.list[i];
+            },
+            doRequest: function (type) {
+                var vm = this;
+                if (vm.model.url == '') {
+                    alert('请输入url');
+                    return;
+                }
+                vm.loading = true;
+                var option = {
+                    url: vm.model.url,
+                    data: JSON.stringify(vm.getParam(vm.model.param)),
+                    headers: {'Content-Type': 'application/json;charset=UTF-8'},
+                    type: type,
+                    success: function (response) {
+                        vm.loading = false;
+                        vm.fitResult(response);
+                        if(response.data && response.data.token) vm.token = response.data.token;
+                    },
+                    error: function (response) {
+                        vm.loading = false;
+                        vm.fitResult(response);
+                    }
+                };
+                if (vm.token != '') option.headers['Authorization'] = 'Bearer ' + vm.token;
+                console.log(option)
+                $.ajax(option);
+            },
+            fitResult: function (data) {
+                this.result = data;
+            },
+            getParam: function (str) {
+                var param = {};
+                $(str.split('\n')).each(function () {
+                    var temp = this.split(':');
+                    param[temp[0]] = this.replace(temp[0] + ':', '');
+                });
+                return param;
+            }
+        }
+    });
+</script>
+</body>
+</html>
