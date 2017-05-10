@@ -18,11 +18,7 @@ public class BoxController {
     @GetMapping("/{time}")
     public Result findOne(@PathVariable String time){
         Result result=new Result();
-//        SimpleDateFormat sdf =   new SimpleDateFormat( "yyyy-MM-dd");
         try {
-//            String starttime=time+" 00:00:00";
-//            String endtime=sdf.format(quality.getCtime())+" 23:59:59";
-//            String endtime=time+" 23:59:59";
             result.setData(service.findOneDayBox(time));
             result.setMsg("加载成功");
         } catch (Exception ex) {
